@@ -18,7 +18,7 @@ Windows Registry Editor Version 5.00
 "Autorun"="cd /d %userprofile%"
 ```
 
-With that entry removed we can now confirm the fix by running `yarn start` from the `~\source\repos\CouchbaseTester\ClientApp` folder.
+With that entry removed we can now confirm the fix by running `yarn start` from the `~\source\repos\CouchbaseTester\ClientApp` folder. The fix can also be tested by running `npm config list` within any folder, and confirming that the value of `cwd` is that folder (and not c:\users\matt).
 
 Note that for the whole app to function the server side needs to be running too. So the preferred method of launching while developing/debugging is `dotnet run` from the project folder. (and [this SO suggestion](https://stackoverflow.com/a/61354275) is no longer required).
 
