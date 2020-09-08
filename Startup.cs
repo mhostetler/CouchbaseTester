@@ -1,4 +1,5 @@
 using Couchbase;
+using Couchbase.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -21,12 +22,11 @@ namespace CouchbaseTester
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            var settings = Configuration.GetSection("ClusterOptions");
-            services.Configure<ClusterOptions>(settings);
-
             services.AddControllersWithViews();
 
+            var settings = Configuration.GetSection("ClusterOptions");
+            services.AddCouchbase(settings);
+            
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -35,7 +35,7 @@ namespace CouchbaseTester
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime)
         {
             if (env.IsDevelopment())
             {
@@ -69,6 +69,15 @@ namespace CouchbaseTester
                 {
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
+            });
+
+            // When application is stopped gracefully shutdown Couchbase connections
+            applicationLifetime.ApplicationStopped.Register(async () =>
+            {
+                await app.ApplicationServices
+                    .GetRequiredService<ICouchbaseLifetimeService>()
+                    .CloseAsync()
+                    .ConfigureAwait(false);
             });
         }
     }
