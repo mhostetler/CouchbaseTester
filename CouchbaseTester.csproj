@@ -13,6 +13,7 @@
     <PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.0.4.811" />
     <PackageReference Include="CouchbaseNetClient" Version="3.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.6" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.9.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,4 +49,7 @@
     </ItemGroup>
   </Target>
 
+  <ItemGroup>
+    <Content Update="nlog.config" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
