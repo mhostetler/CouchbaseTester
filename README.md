@@ -14,7 +14,8 @@ __Note:__ the run command seen on the docker hub page omits port 8095 which is r
 
 ## Todo
 * Deploy to Azure
-* Try to remove Linq2Couchbase dependency on Microsoft.Bcl.AsyncInterfaces (from https://www.nuget.org/packages/System.Linq.Async/)
+* Try to remove Linq2Couchbase's dependency on Microsoft.Bcl.AsyncInterfaces (from https://www.nuget.org/packages/System.Linq.Async/)
+* Ask Linq2Couchbase owners why a working package (e.g., 1.4.3 which I build off master locally) hasn't been pushed to NuGet
 
 ## Docker
 To run in a Docker container perform the following steps (from the project's home directory):
