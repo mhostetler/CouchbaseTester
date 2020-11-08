@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Couchbase.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Couchbase.Linq;
+using Couchbase;
 
 namespace CouchbaseTester.Controllers
 {
@@ -18,20 +20,31 @@ namespace CouchbaseTester.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
-        private readonly IClusterProvider _clusterProvider;
+        private readonly Task<IBucket> _bucketTask;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IClusterProvider clusterProvider)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, Task<IBucket> bucketTask)
         {
             _logger = logger;
-            _clusterProvider = clusterProvider;
+            _bucketTask = bucketTask;
         }
 
         [HttpGet]
         public async Task<IEnumerable<WeatherForecast>> GetAsync()
         {
-            var cluster = await _clusterProvider.GetClusterAsync();
-            var result = await cluster.QueryAsync<dynamic>("select gs.* from `gamesim-sample` AS gs where jsonType = \"player\" LIMIT 10;");
-            var resultRows = await result.Rows.ToListAsync();
+            IList<Player> resultRows = new Player[] { new Player() { Name = "undefined"} };
+            try
+            {
+                var bucketContext = new BucketContext(await _bucketTask);
+                resultRows = bucketContext
+                    .Query<Player>()
+                    .Where(x => x.JsonType == "player")
+                    .Take(20)
+                    .ToList();                
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error querying Couchbase");
+            }
 
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
@@ -39,7 +52,7 @@ namespace CouchbaseTester.Controllers
                 Date = DateTime.Now.AddDays(index),
                 TemperatureC = rng.Next(-20, 55),
                 //Summary = Summaries[rng.Next(Summaries.Length)],
-                Summary = resultRows[rng.Next(resultRows.Count())].name
+                Summary = resultRows[rng.Next(resultRows.Count())].Name
             })
             .ToArray();
         }

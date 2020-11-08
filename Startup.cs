@@ -1,11 +1,13 @@
 using Couchbase.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Couchbase.Linq;
+using Couchbase;
+using System.Threading.Tasks;
 
 namespace CouchbaseTester
 {
@@ -23,9 +25,26 @@ namespace CouchbaseTester
         {
             services.AddControllersWithViews();
 
+            var clusterOptions = new ClusterOptions();
             var settings = Configuration.GetSection("ClusterOptions");
-            services.AddCouchbase(settings);
-            
+            settings.Bind(clusterOptions);
+
+            services.AddCouchbase(o =>
+            {
+                // the dilemma of using configuration-based initialization but also an extension method
+                o.ConnectionString = clusterOptions.ConnectionString;
+                o.UserName = clusterOptions.UserName;
+                o.Password = clusterOptions.Password;
+                o.Buckets = clusterOptions.Buckets;
+                o.AddLinq();
+            });
+            services.AddCouchbaseBucket<IGameSimSampleBucketProvider>(clusterOptions.Buckets[0]);
+            services.AddTransient<Task<IBucket>>(x =>
+            {
+                var bucketProvider = x.GetRequiredService<IGameSimSampleBucketProvider>();
+                return bucketProvider.GetBucketAsync().AsTask();
+            });
+
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
