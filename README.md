@@ -24,6 +24,15 @@ To run in a Docker container perform the following steps (from the project's hom
 
 To inspect the filesystem of the running container use this command: `docker exec -it couchbase-tester /bin/ash`
 
+<ins>**Linq2Couchbase compilation error**</ins>\
+The latest version of this package, 1.4.2, does not compile when using a 3.x version of CouchbaseNetClient.
+
+`CS7069 Reference to type 'IBucket' claims it is defined in 'Couchbase.NetClient', but it could not be found`
+
+The solution was to push a 1.4.3 version to a local NuGet feed, compiled from the repo's master branch.
+
+Then there were problems with the Dockerfile's restore step, since Docker cannot access a folder-based private feed. So instead of running a local NuGet server I decided to just bring the nupkg into the build context, then copy it to the container.
+
 <ins>**Solution to the npm/yarn home directory problem**</ins>\
 Ever since we began exploring .NET Core with React.js there had been an issue where npm and/or yarn always chose the home directory (e.g., c:\users\matt) as the `cwd`. This could be seen by simply running `npm get` and observing the cwd value. We did notice that the problem was isolated to Powershell terminals, and not the regular cmd processor which worked as expected.
 
